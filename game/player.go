@@ -9,21 +9,27 @@ type Player struct {
 	velocity   float32
 	gravity    float32
 	lift       float32
-	jumpCD     bool
+	canJump    bool
+	tex        *sdl.Texture
 }
 
-func NewPlayer(x, y int32) *Player {
+func NewPlayer(sw, sh int32, t *sdl.Texture) *Player {
+
+	h := sh / 10 * 2
+	w := h * 100 / 100 * 70 / 100
+
 	p := &Player{
-		w:        140,
-		h:        180,
-		gravity:  0.7,
+		w:        w,
+		h:        h,
+		gravity:  0.6,
 		velocity: 0,
-		lift:     -13,
-		jumpCD:   false,
+		lift:     -12,
+		canJump:  true,
+		tex:      t,
 	}
 
-	p.x = x - (p.w / 2)
-	p.y = y - (p.h / 2)
+	p.x = sw / 5
+	p.y = sw / 5 * 2
 
 	return p
 }
@@ -33,12 +39,12 @@ func (p *Player) Update(sw, sh int32) {
 	keys := sdl.GetKeyboardState()
 
 	if keys[sdl.SCANCODE_SPACE] == 1 {
-		if !p.jumpCD {
-			p.jumpCD = true
+		if p.canJump {
+			p.canJump = false
 			p.velocity = p.lift
 		}
 	} else {
-		p.jumpCD = false
+		p.canJump = true
 	}
 
 	p.velocity += p.gravity
@@ -53,12 +59,9 @@ func (p *Player) Update(sw, sh int32) {
 	}
 }
 
-func (p *Player) Draw(s *sdl.Surface) {
-	rect := sdl.Rect{
-		X: p.x,
-		Y: p.y,
-		W: p.w,
-		H: p.h,
-	}
-	s.FillRect(&rect, 0xff00FFFF)
+func (p *Player) Draw(r *sdl.Renderer) {
+	src := sdl.Rect{0, 0, 217, 286}
+	dst := sdl.Rect{X: p.x, Y: p.y, W: p.w, H: p.h}
+	r.SetDrawColor(0, 255, 255, 255)
+	r.Copy(p.tex, &src, &dst)
 }

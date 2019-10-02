@@ -4,15 +4,19 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
 // Game represents a game
 type Game struct {
-	window   *sdl.Window
-	surface  *sdl.Surface
-	player   *Player
-	pipePool PipePool
+	w, h, v   int32
+	window    *sdl.Window
+	renderer  *sdl.Renderer
+	player    *Player
+	pipePool  PipePool
+	cloudPool CloudPool
+	running   bool
 }
 
 // New creates a new instance of Game
@@ -24,72 +28,190 @@ func New() Game {
 func (g *Game) Init() error {
 	err := sdl.Init(sdl.INIT_EVERYTHING)
 	if err != nil {
-		return fmt.Errorf("Initializing SDL: %s", err.Error())
+		return fmt.Errorf("Initializing SDL: %s\n", err.Error())
 	}
 	defer sdl.Quit()
 
 	g.window, err = sdl.CreateWindow("Flappy Gopher",
 		sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
-		0, 0,
+		800, 600,
 		sdl.WINDOW_OPENGL)
 	if err != nil {
-		return fmt.Errorf("Initializing window: %s", err.Error())
+		return fmt.Errorf("Initializing window: %s\n", err.Error())
 	}
 	defer g.window.Destroy()
 	g.window.SetFullscreen(sdl.WINDOW_FULLSCREEN_DESKTOP)
-	sw, sh := g.window.GetSize()
+	g.w, g.h = g.window.GetSize()
 
-	g.surface, err = g.window.GetSurface()
+	g.renderer, err = sdl.CreateRenderer(g.window, -1, sdl.RENDERER_ACCELERATED|sdl.RENDERER_PRESENTVSYNC)
 	if err != nil {
-		return fmt.Errorf("Getting surface: %s", err.Error())
+		return fmt.Errorf("Initializing Renderer: %s\n", err.Error())
 	}
 
-	g.player = NewPlayer(sw/4, sh/2)
-	g.pipePool = PipePool([]*Pipe{
-		NewPipe(sh, sw),
-		NewPipe(sh, sw),
-		NewPipe(sh, sw),
-		NewPipe(sh, sw),
-	})
+	if err = g.restart(); err != nil {
+		return err
+	}
 
-	gameVelocity := int32(1)
-	go func(pp *PipePool) {
-		for {
-			if p, ok := pp.Next(); ok {
-				p.Active = true
-			}
-			gameVelocity += 1
-			time.Sleep(1 * time.Second)
-		}
-	}(&g.pipePool)
+	go g.handleVelocity()
+	go g.handlePipes()
+	go g.handleClouds()
 
-	running := true
-	for running {
-		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-			switch event.(type) {
-			case *sdl.QuitEvent:
-				println("Quit")
-				running = false
-				break
-			}
-		}
-		// Background
-		g.surface.FillRect(&sdl.Rect{X: 0, Y: 0, W: sw, H: sh / 3 * 2}, 0xff0000FF)
-		g.surface.FillRect(&sdl.Rect{X: 0, Y: sh / 3 * 2, W: sw, H: sh / 3}, 0xff00FF00)
+	g.running = true
+	for g.running {
 
-		g.player.Update(sw, sh)
-		g.player.Draw(g.surface)
+		g.checkKeys()
+		g.checkPollEvents()
+		g.drawBackGround()
+		g.drawClouds()
+		g.drawPipes()
+		g.drawPlayer()
 
-		for _, p := range g.pipePool {
-			p.Update(sw, sh, gameVelocity)
-			p.Draw(g.surface)
-			if p.OffScreen() {
-				p.Reset(sh, sw)
-			}
-		}
-
-		g.window.UpdateSurface()
+		g.renderer.Present()
 		time.Sleep(1000 / 60 * time.Millisecond)
 	}
 	return nil
+}
+
+func (g *Game) createPlayer() error {
+	image, err := img.Load("../game/sprites/player.png")
+	if err != nil {
+		return fmt.Errorf("Failed to load PNG: %s\n", err)
+	}
+
+	texture, err := g.renderer.CreateTextureFromSurface(image)
+	if err != nil {
+		return fmt.Errorf("Failed to create texture: %s\n", err)
+	}
+
+	g.player = NewPlayer(g.w, g.h, texture)
+	return nil
+}
+
+func (g *Game) createPipes() error {
+	g.pipePool = PipePool([]*Pipe{
+		NewPipe(g.h, g.w),
+		NewPipe(g.h, g.w),
+		NewPipe(g.h, g.w),
+		NewPipe(g.h, g.w),
+	})
+	return nil
+}
+
+func (g *Game) createClouds() error {
+	image, _ := img.Load("../game/sprites/cloud.png")
+	tx, _ := g.renderer.CreateTextureFromSurface(image)
+
+	g.cloudPool = CloudPool([]*Cloud{
+		NewCloud(g.h, g.w, tx),
+		NewCloud(g.h, g.w, tx),
+		NewCloud(g.h, g.w, tx),
+		NewCloud(g.h, g.w, tx),
+		NewCloud(g.h, g.w, tx),
+		NewCloud(g.h, g.w, tx),
+		NewCloud(g.h, g.w, tx),
+		NewCloud(g.h, g.w, tx),
+		NewCloud(g.h, g.w, tx),
+		NewCloud(g.h, g.w, tx),
+	})
+	return nil
+}
+
+func (g *Game) handleVelocity() {
+	for {
+		g.v++
+		time.Sleep(6 * time.Second)
+	}
+}
+
+func (g *Game) handlePipes() {
+	for {
+		if p, ok := g.pipePool.Next(); ok {
+			p.Active = true
+		}
+		time.Sleep(3 * time.Second)
+	}
+}
+
+func (g *Game) handleClouds() {
+	for {
+		if c, ok := g.cloudPool.Next(); ok {
+			c.Active = true
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+}
+
+func (g *Game) checkKeys() {
+	keys := sdl.GetKeyboardState()
+
+	if keys[sdl.SCANCODE_RETURN] == 1 {
+		g.restart()
+	} else if keys[sdl.SCANCODE_ESCAPE] == 1 {
+		g.quit()
+	}
+}
+
+func (g *Game) checkPollEvents() {
+	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
+		switch event.(type) {
+		case *sdl.QuitEvent:
+			g.quit()
+			break
+		}
+	}
+}
+
+func (g *Game) drawBackGround() {
+	sky := &sdl.Rect{X: 0, Y: 0, W: g.w, H: g.h / 3 * 2}
+	floor := &sdl.Rect{X: 0, Y: g.h / 3 * 2, W: g.w, H: g.h / 3}
+	g.renderer.SetDrawColor(0, 122, 255, 255)
+	g.renderer.FillRect(sky)
+	g.renderer.SetDrawColor(0, 200, 50, 255)
+	g.renderer.FillRect(floor)
+}
+
+func (g *Game) drawClouds() {
+	for _, c := range g.cloudPool {
+		c.Update()
+		c.Draw(g.renderer)
+		if c.OffScreen() {
+			c.Reset(g.h, g.w)
+		}
+	}
+}
+
+func (g *Game) drawPipes() {
+	for _, p := range g.pipePool {
+		p.Update(g.w, g.h, g.v)
+		p.Draw(g.renderer)
+		if p.OffScreen() {
+			p.Reset(g.h, g.w)
+		}
+	}
+}
+
+func (g *Game) drawPlayer() {
+	g.player.Update(g.w, g.h)
+	g.player.Draw(g.renderer)
+}
+
+func (g *Game) restart() error {
+	if err := g.createPlayer(); err != nil {
+		return err
+	}
+
+	if err := g.createPipes(); err != nil {
+		return err
+	}
+
+	if err := g.createClouds(); err != nil {
+		return err
+	}
+
+	g.v = int32(1)
+	return nil
+}
+
+func (g *Game) quit() {
+	g.running = false
 }

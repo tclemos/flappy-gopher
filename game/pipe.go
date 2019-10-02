@@ -1,16 +1,10 @@
 package game
 
 import (
-	"fmt"
 	"math/rand"
 	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
-)
-
-const (
-	pipeGap   = 420
-	pipeWidth = 140
 )
 
 type Pipe struct {
@@ -18,6 +12,7 @@ type Pipe struct {
 	velocity  int32
 	topPart   sdl.Rect
 	botPart   sdl.Rect
+	gap, w    int32
 
 	Active bool
 }
@@ -26,17 +21,22 @@ type PipePool []*Pipe
 
 func NewPipe(sh, sw int32) *Pipe {
 
+	gap := sh / 10 * 4
+	w := sh / 4 / 100 * 90
+
 	return &Pipe{
-		top:      getTopPosition(sh),
+		top:      getTopPosition(sh, gap),
 		velocity: 3,
 		left:     sw,
 		Active:   false,
+		w:        w,
+		gap:      gap,
 	}
 }
 
-func getTopPosition(sh int32) int32 {
+func getTopPosition(sh, gap int32) int32 {
 	rand.Seed(time.Now().UnixNano())
-	return rand.Int31n(sh-pipeGap-30) + 30
+	return rand.Int31n(sh-gap-60) + 30
 }
 
 func (p *Pipe) Update(sw, sh, gameVelocity int32) {
@@ -44,33 +44,29 @@ func (p *Pipe) Update(sw, sh, gameVelocity int32) {
 		return
 	}
 
-	fmt.Println("Pipe update:", p.top, p.velocity, p.left)
 	p.left -= p.velocity + gameVelocity
-	p.topPart = sdl.Rect{X: p.left, Y: 0, H: p.top, W: pipeWidth}
-	p.botPart = sdl.Rect{X: p.left, Y: p.top + pipeGap, H: sh - (p.top + pipeGap), W: pipeWidth}
+	p.topPart = sdl.Rect{X: p.left, Y: 0, H: p.top, W: p.w}
+	p.botPart = sdl.Rect{X: p.left, Y: p.top + p.gap, H: sh - (p.top + p.gap), W: p.w}
 }
 
-func (p *Pipe) Draw(s *sdl.Surface) {
+func (p *Pipe) Draw(r *sdl.Renderer) {
 	if !p.Active {
 		return
 	}
 
-	fmt.Println("Pipe draw")
-	fmt.Println("topPart:", p.topPart.Y, p.topPart.X, p.topPart.H, p.topPart.W)
-	fmt.Println("botPart:", p.botPart.Y, p.botPart.X, p.botPart.H, p.botPart.W)
-
-	s.FillRect(&p.topPart, 0xff8B4513)
-	s.FillRect(&p.botPart, 0xff8B4513)
+	r.SetDrawColor(139, 69, 19, 255)
+	r.FillRect(&p.topPart)
+	r.FillRect(&p.botPart)
 }
 
 func (p *Pipe) OffScreen() bool {
-	return p.left+pipeWidth < 0
+	return p.left+p.w < 0
 }
 
 func (p *Pipe) Reset(sh, sw int32) {
 	p.Active = false
 	p.left = sw
-	p.top = getTopPosition(sh)
+	p.top = getTopPosition(sh, p.gap)
 }
 
 func (pp PipePool) Next() (*Pipe, bool) {
