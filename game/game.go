@@ -1,32 +1,30 @@
 package game
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-type Component interface {
-	Update(sw, sh int)
-	Draw(*sdl.Surface)
-}
-
+// Game represents a game
 type Game struct {
-	window     *sdl.Window
-	surface    *sdl.Surface
-	components []Component
+	window   *sdl.Window
+	surface  *sdl.Surface
+	player   *Player
+	pipePool PipePool
 }
 
+// New creates a new instance of Game
 func New() Game {
 	return Game{}
 }
 
+// Init initializes the game
 func (g *Game) Init() error {
 	err := sdl.Init(sdl.INIT_EVERYTHING)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Initializing SDL: %s", err.Error()))
+		return fmt.Errorf("Initializing SDL: %s", err.Error())
 	}
 	defer sdl.Quit()
 
@@ -35,7 +33,7 @@ func (g *Game) Init() error {
 		0, 0,
 		sdl.WINDOW_OPENGL)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Initializing window: %s", err.Error()))
+		return fmt.Errorf("Initializing window: %s", err.Error())
 	}
 	defer g.window.Destroy()
 	g.window.SetFullscreen(sdl.WINDOW_FULLSCREEN_DESKTOP)
@@ -43,11 +41,27 @@ func (g *Game) Init() error {
 
 	g.surface, err = g.window.GetSurface()
 	if err != nil {
-		return errors.New(fmt.Sprintf("Getting surface: %s", err.Error()))
+		return fmt.Errorf("Getting surface: %s", err.Error())
 	}
 
-	g.components = make([]Component, 0)
-	g.components = append(g.components, NewPlayer(int(sw)/4, int(sh)/2))
+	g.player = NewPlayer(sw/4, sh/2)
+	g.pipePool = PipePool([]*Pipe{
+		NewPipe(sh, sw),
+		NewPipe(sh, sw),
+		NewPipe(sh, sw),
+		NewPipe(sh, sw),
+	})
+
+	gameVelocity := int32(1)
+	go func(pp *PipePool) {
+		for {
+			if p, ok := pp.Next(); ok {
+				p.Active = true
+			}
+			gameVelocity += 1
+			time.Sleep(1 * time.Second)
+		}
+	}(&g.pipePool)
 
 	running := true
 	for running {
@@ -59,13 +73,21 @@ func (g *Game) Init() error {
 				break
 			}
 		}
+		// Background
 		g.surface.FillRect(&sdl.Rect{X: 0, Y: 0, W: sw, H: sh / 3 * 2}, 0xff0000FF)
 		g.surface.FillRect(&sdl.Rect{X: 0, Y: sh / 3 * 2, W: sw, H: sh / 3}, 0xff00FF00)
 
-		for _, c := range g.components {
-			c.Update(int(sw), int(sh))
-			c.Draw(g.surface)
+		g.player.Update(sw, sh)
+		g.player.Draw(g.surface)
+
+		for _, p := range g.pipePool {
+			p.Update(sw, sh, gameVelocity)
+			p.Draw(g.surface)
+			if p.OffScreen() {
+				p.Reset(sh, sw)
+			}
 		}
+
 		g.window.UpdateSurface()
 		time.Sleep(1000 / 60 * time.Millisecond)
 	}

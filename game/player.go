@@ -1,20 +1,18 @@
 package game
 
 import (
-	"fmt"
-
 	"github.com/veandco/go-sdl2/sdl"
 )
 
 type Player struct {
-	x, y, w, h int
+	x, y, w, h int32
 	velocity   float32
 	gravity    float32
 	lift       float32
 	jumpCD     bool
 }
 
-func NewPlayer(x, y int) *Player {
+func NewPlayer(x, y int32) *Player {
 	p := &Player{
 		w:        140,
 		h:        180,
@@ -30,13 +28,9 @@ func NewPlayer(x, y int) *Player {
 	return p
 }
 
-func (p *Player) Update(sw, sh int) {
-	// fmt.Println("Player Update")
-	// fmt.Println(p.y, sh)
+func (p *Player) Update(sw, sh int32) {
 
 	keys := sdl.GetKeyboardState()
-
-	fmt.Println(p.velocity)
 
 	if keys[sdl.SCANCODE_SPACE] == 1 {
 		if !p.jumpCD {
@@ -48,7 +42,7 @@ func (p *Player) Update(sw, sh int) {
 	}
 
 	p.velocity += p.gravity
-	p.y += int(p.velocity)
+	p.y += int32(p.velocity)
 
 	if p.y+p.h >= sh {
 		p.y = sh - p.h
@@ -61,10 +55,10 @@ func (p *Player) Update(sw, sh int) {
 
 func (p *Player) Draw(s *sdl.Surface) {
 	rect := sdl.Rect{
-		X: int32(p.x),
-		Y: int32(p.y),
-		W: int32(p.w),
-		H: int32(p.h),
+		X: p.x,
+		Y: p.y,
+		W: p.w,
+		H: p.h,
 	}
 	s.FillRect(&rect, 0xff00FFFF)
 }
