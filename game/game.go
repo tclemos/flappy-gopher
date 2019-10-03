@@ -34,7 +34,7 @@ func (g *Game) Init() error {
 
 	g.window, err = sdl.CreateWindow("Flappy Gopher",
 		sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
-		800, 600,
+		1200, 720,
 		sdl.WINDOW_OPENGL)
 	if err != nil {
 		return fmt.Errorf("Initializing window: %s\n", err.Error())

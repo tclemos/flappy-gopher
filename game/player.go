@@ -16,7 +16,7 @@ type Player struct {
 func NewPlayer(sw, sh int32, t *sdl.Texture) *Player {
 
 	h := sh / 10 * 2
-	w := h * 100 / 100 * 70 / 100
+	w := h * 100 / 100 * 105 / 100
 
 	p := &Player{
 		w:        w,
@@ -60,7 +60,7 @@ func (p *Player) Update(sw, sh int32) {
 }
 
 func (p *Player) Draw(r *sdl.Renderer) {
-	src := sdl.Rect{0, 0, 217, 286}
+	src := sdl.Rect{0, 0, 647, 572}
 	dst := sdl.Rect{X: p.x, Y: p.y, W: p.w, H: p.h}
 	r.SetDrawColor(0, 255, 255, 255)
 	r.Copy(p.tex, &src, &dst)
