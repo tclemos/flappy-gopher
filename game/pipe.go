@@ -9,7 +9,6 @@ import (
 
 type Pipe struct {
 	top, left int32
-	velocity  int32
 	topPart   sdl.Rect
 	botPart   sdl.Rect
 	gap, w    int32
@@ -25,12 +24,11 @@ func NewPipe(sh, sw int32) *Pipe {
 	w := sh / 4 / 100 * 90
 
 	return &Pipe{
-		top:      getTopPosition(sh, gap),
-		velocity: 3,
-		left:     sw,
-		Active:   false,
-		w:        w,
-		gap:      gap,
+		top:    getTopPosition(sh, gap),
+		left:   sw,
+		Active: false,
+		w:      w,
+		gap:    gap,
 	}
 }
 
@@ -39,12 +37,12 @@ func getTopPosition(sh, gap int32) int32 {
 	return rand.Int31n(sh-gap-60) + 30
 }
 
-func (p *Pipe) Update(sw, sh, gameVelocity int32) {
+func (p *Pipe) Update(sw, sh, velocity int32) {
 	if !p.Active {
 		return
 	}
 
-	p.left -= p.velocity + gameVelocity
+	p.left -= velocity
 	p.topPart = sdl.Rect{X: p.left, Y: 0, H: p.top, W: p.w}
 	p.botPart = sdl.Rect{X: p.left, Y: p.top + p.gap, H: sh - (p.top + p.gap), W: p.w}
 }

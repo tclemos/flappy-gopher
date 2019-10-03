@@ -26,7 +26,7 @@ func NewCloud(sh, sw int32, t *sdl.Texture) *Cloud {
 
 func (c *Cloud) Reset(sh, sw int32) {
 	rand.Seed(time.Now().UnixNano())
-	c.y = rand.Int31n(sh/3*2-100) + 50
+	c.y = rand.Int31n(sh/3*2 - 100)
 	c.x = sw
 	c.velocity = rand.Int31n(10) + 1
 	c.w = sw/10*rand.Int31n(3) + 1

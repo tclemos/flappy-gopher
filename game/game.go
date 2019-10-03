@@ -16,6 +16,7 @@ type Game struct {
 	player    *Player
 	pipePool  PipePool
 	cloudPool CloudPool
+	grassPool GrassPool
 	running   bool
 }
 
@@ -26,6 +27,7 @@ func New() Game {
 
 // Init initializes the game
 func (g *Game) Init() error {
+
 	err := sdl.Init(sdl.INIT_EVERYTHING)
 	if err != nil {
 		return fmt.Errorf("Initializing SDL: %s\n", err.Error())
@@ -40,7 +42,7 @@ func (g *Game) Init() error {
 		return fmt.Errorf("Initializing window: %s\n", err.Error())
 	}
 	defer g.window.Destroy()
-	g.window.SetFullscreen(sdl.WINDOW_FULLSCREEN_DESKTOP)
+	//g.window.SetFullscreen(sdl.WINDOW_FULLSCREEN_DESKTOP)
 	g.w, g.h = g.window.GetSize()
 
 	g.renderer, err = sdl.CreateRenderer(g.window, -1, sdl.RENDERER_ACCELERATED|sdl.RENDERER_PRESENTVSYNC)
@@ -55,6 +57,7 @@ func (g *Game) Init() error {
 	go g.handleVelocity()
 	go g.handlePipes()
 	go g.handleClouds()
+	go g.handleGrass()
 
 	g.running = true
 	for g.running {
@@ -63,6 +66,7 @@ func (g *Game) Init() error {
 		g.checkPollEvents()
 		g.drawBackGround()
 		g.drawClouds()
+		g.drawGrasses()
 		g.drawPipes()
 		g.drawPlayer()
 
@@ -116,6 +120,31 @@ func (g *Game) createClouds() error {
 	return nil
 }
 
+func (g *Game) createGrasses() error {
+	image, _ := img.Load("../game/sprites/grass.png")
+	tx, _ := g.renderer.CreateTextureFromSurface(image)
+
+	g.grassPool = GrassPool([]*Grass{
+		NewGrass(g.h, g.w, tx),
+		NewGrass(g.h, g.w, tx),
+		NewGrass(g.h, g.w, tx),
+		NewGrass(g.h, g.w, tx),
+		NewGrass(g.h, g.w, tx),
+		NewGrass(g.h, g.w, tx),
+		NewGrass(g.h, g.w, tx),
+		NewGrass(g.h, g.w, tx),
+		NewGrass(g.h, g.w, tx),
+		NewGrass(g.h, g.w, tx),
+		NewGrass(g.h, g.w, tx),
+		NewGrass(g.h, g.w, tx),
+		NewGrass(g.h, g.w, tx),
+		NewGrass(g.h, g.w, tx),
+		NewGrass(g.h, g.w, tx),
+		NewGrass(g.h, g.w, tx),
+	})
+	return nil
+}
+
 func (g *Game) handleVelocity() {
 	for {
 		g.v++
@@ -138,6 +167,15 @@ func (g *Game) handleClouds() {
 			c.Active = true
 		}
 		time.Sleep(50 * time.Millisecond)
+	}
+}
+
+func (g *Game) handleGrass() {
+	for {
+		if g, ok := g.grassPool.Next(); ok {
+			g.Active = true
+		}
+		time.Sleep(time.Duration((500 - (10 * g.v))) * time.Millisecond)
 	}
 }
 
@@ -166,7 +204,7 @@ func (g *Game) drawBackGround() {
 	floor := &sdl.Rect{X: 0, Y: g.h / 3 * 2, W: g.w, H: g.h / 3}
 	g.renderer.SetDrawColor(0, 122, 255, 255)
 	g.renderer.FillRect(sky)
-	g.renderer.SetDrawColor(0, 200, 50, 255)
+	g.renderer.SetDrawColor(100, 185, 8, 255)
 	g.renderer.FillRect(floor)
 }
 
@@ -176,6 +214,16 @@ func (g *Game) drawClouds() {
 		c.Draw(g.renderer)
 		if c.OffScreen() {
 			c.Reset(g.h, g.w)
+		}
+	}
+}
+
+func (g *Game) drawGrasses() {
+	for _, gr := range g.grassPool {
+		gr.Update(g.v)
+		gr.Draw(g.renderer)
+		if gr.OffScreen() {
+			gr.Reset(g.h, g.w)
 		}
 	}
 }
@@ -208,7 +256,11 @@ func (g *Game) restart() error {
 		return err
 	}
 
-	g.v = int32(1)
+	if err := g.createGrasses(); err != nil {
+		return err
+	}
+
+	g.v = int32(5)
 	return nil
 }
 
