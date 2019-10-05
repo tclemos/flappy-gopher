@@ -14,7 +14,7 @@ type Game struct {
 	window    *sdl.Window
 	renderer  *sdl.Renderer
 	player    *Player
-	pipePool  PipePool
+	trunkPool TrunkPool
 	cloudPool CloudPool
 	grassPool GrassPool
 	running   bool
@@ -55,7 +55,7 @@ func (g *Game) Init() error {
 	}
 
 	go g.handleVelocity()
-	go g.handlePipes()
+	go g.handleTrunks()
 	go g.handleClouds()
 	go g.handleGrass()
 
@@ -92,11 +92,21 @@ func (g *Game) createPlayer() error {
 }
 
 func (g *Game) createPipes() error {
-	g.pipePool = PipePool([]*Pipe{
-		NewPipe(g.h, g.w),
-		NewPipe(g.h, g.w),
-		NewPipe(g.h, g.w),
-		NewPipe(g.h, g.w),
+	image, err := img.Load("../game/sprites/trunk.png")
+	if err != nil {
+		return fmt.Errorf("Failed to load PNG: %s\n", err)
+	}
+
+	texture, err := g.renderer.CreateTextureFromSurface(image)
+	if err != nil {
+		return fmt.Errorf("Failed to create texture: %s\n", err)
+	}
+
+	g.trunkPool = TrunkPool([]*Trunk{
+		NewTrunk(g.h, g.w, texture),
+		NewTrunk(g.h, g.w, texture),
+		NewTrunk(g.h, g.w, texture),
+		NewTrunk(g.h, g.w, texture),
 	})
 	return nil
 }
@@ -152,9 +162,9 @@ func (g *Game) handleVelocity() {
 	}
 }
 
-func (g *Game) handlePipes() {
+func (g *Game) handleTrunks() {
 	for {
-		if p, ok := g.pipePool.Next(); ok {
+		if p, ok := g.trunkPool.Next(); ok {
 			p.Active = true
 		}
 		time.Sleep(3 * time.Second)
@@ -229,7 +239,7 @@ func (g *Game) drawGrasses() {
 }
 
 func (g *Game) drawPipes() {
-	for _, p := range g.pipePool {
+	for _, p := range g.trunkPool {
 		p.Update(g.w, g.h, g.v)
 		p.Draw(g.renderer)
 		if p.OffScreen() {
