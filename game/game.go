@@ -18,6 +18,7 @@ type Game struct {
 	cloudPool CloudPool
 	grassPool GrassPool
 	running   bool
+	over      bool
 }
 
 // New creates a new instance of Game
@@ -69,6 +70,7 @@ func (g *Game) Init() error {
 		g.drawGrasses()
 		g.drawPipes()
 		g.drawPlayer()
+		g.checkCollision()
 
 		g.renderer.Present()
 		time.Sleep(1000 / 60 * time.Millisecond)
@@ -77,88 +79,52 @@ func (g *Game) Init() error {
 }
 
 func (g *Game) createPlayer() error {
-	image, err := img.Load("../game/sprites/player.png")
-	if err != nil {
-		return fmt.Errorf("Failed to load PNG: %s\n", err)
-	}
-
-	texture, err := g.renderer.CreateTextureFromSurface(image)
-	if err != nil {
-		return fmt.Errorf("Failed to create texture: %s\n", err)
-	}
-
+	image, _ := img.Load("../../game/sprites/player.png")
+	texture, _ := g.renderer.CreateTextureFromSurface(image)
 	g.player = NewPlayer(g.w, g.h, texture)
 	return nil
 }
 
 func (g *Game) createPipes() error {
-	image, err := img.Load("../game/sprites/trunk.png")
-	if err != nil {
-		return fmt.Errorf("Failed to load PNG: %s\n", err)
+	image, _ := img.Load("../../game/sprites/trunk.png")
+	texture, _ := g.renderer.CreateTextureFromSurface(image)
+
+	g.trunkPool = TrunkPool{}
+	for x := 0; x < 4; x++ {
+		g.trunkPool = append(g.trunkPool, NewTrunk(g.h, g.w, texture))
 	}
 
-	texture, err := g.renderer.CreateTextureFromSurface(image)
-	if err != nil {
-		return fmt.Errorf("Failed to create texture: %s\n", err)
-	}
-
-	g.trunkPool = TrunkPool([]*Trunk{
-		NewTrunk(g.h, g.w, texture),
-		NewTrunk(g.h, g.w, texture),
-		NewTrunk(g.h, g.w, texture),
-		NewTrunk(g.h, g.w, texture),
-	})
 	return nil
 }
 
 func (g *Game) createClouds() error {
-	image, _ := img.Load("../game/sprites/cloud.png")
+	image, _ := img.Load("../../game/sprites/cloud.png")
 	tx, _ := g.renderer.CreateTextureFromSurface(image)
 
-	g.cloudPool = CloudPool([]*Cloud{
-		NewCloud(g.h, g.w, tx),
-		NewCloud(g.h, g.w, tx),
-		NewCloud(g.h, g.w, tx),
-		NewCloud(g.h, g.w, tx),
-		NewCloud(g.h, g.w, tx),
-		NewCloud(g.h, g.w, tx),
-		NewCloud(g.h, g.w, tx),
-		NewCloud(g.h, g.w, tx),
-		NewCloud(g.h, g.w, tx),
-		NewCloud(g.h, g.w, tx),
-	})
+	g.cloudPool = CloudPool{}
+	for x := 0; x < 7; x++ {
+		g.cloudPool = append(g.cloudPool, NewCloud(g.h, g.w, tx))
+	}
+
 	return nil
 }
 
 func (g *Game) createGrasses() error {
-	image, _ := img.Load("../game/sprites/grass.png")
+	image, _ := img.Load("../../game/sprites/grass.png")
 	tx, _ := g.renderer.CreateTextureFromSurface(image)
 
-	g.grassPool = GrassPool([]*Grass{
-		NewGrass(g.h, g.w, tx),
-		NewGrass(g.h, g.w, tx),
-		NewGrass(g.h, g.w, tx),
-		NewGrass(g.h, g.w, tx),
-		NewGrass(g.h, g.w, tx),
-		NewGrass(g.h, g.w, tx),
-		NewGrass(g.h, g.w, tx),
-		NewGrass(g.h, g.w, tx),
-		NewGrass(g.h, g.w, tx),
-		NewGrass(g.h, g.w, tx),
-		NewGrass(g.h, g.w, tx),
-		NewGrass(g.h, g.w, tx),
-		NewGrass(g.h, g.w, tx),
-		NewGrass(g.h, g.w, tx),
-		NewGrass(g.h, g.w, tx),
-		NewGrass(g.h, g.w, tx),
-	})
+	g.grassPool = GrassPool{}
+	for x := 0; x < 16; x++ {
+		g.grassPool = append(g.grassPool, NewGrass(g.h, g.w, tx))
+	}
+
 	return nil
 }
 
 func (g *Game) handleVelocity() {
 	for {
 		g.v++
-		time.Sleep(6 * time.Second)
+		time.Sleep(5 * time.Second)
 	}
 }
 
@@ -220,7 +186,7 @@ func (g *Game) drawBackGround() {
 
 func (g *Game) drawClouds() {
 	for _, c := range g.cloudPool {
-		c.Update()
+		c.Update(g.over)
 		c.Draw(g.renderer)
 		if c.OffScreen() {
 			c.Reset(g.h, g.w)
@@ -230,7 +196,9 @@ func (g *Game) drawClouds() {
 
 func (g *Game) drawGrasses() {
 	for _, gr := range g.grassPool {
-		gr.Update(g.v)
+		if !g.over {
+			gr.Update(g.v)
+		}
 		gr.Draw(g.renderer)
 		if gr.OffScreen() {
 			gr.Reset(g.h, g.w)
@@ -240,7 +208,9 @@ func (g *Game) drawGrasses() {
 
 func (g *Game) drawPipes() {
 	for _, p := range g.trunkPool {
-		p.Update(g.w, g.h, g.v)
+		if !g.over {
+			p.Update(g.w, g.h, g.v)
+		}
 		p.Draw(g.renderer)
 		if p.OffScreen() {
 			p.Reset(g.h, g.w)
@@ -249,7 +219,9 @@ func (g *Game) drawPipes() {
 }
 
 func (g *Game) drawPlayer() {
-	g.player.Update(g.w, g.h)
+	if !g.over {
+		g.player.Update(g.w, g.h)
+	}
 	g.player.Draw(g.renderer)
 }
 
@@ -271,9 +243,21 @@ func (g *Game) restart() error {
 	}
 
 	g.v = int32(5)
+	g.over = false
 	return nil
 }
 
 func (g *Game) quit() {
 	g.running = false
+}
+
+func (g *Game) checkCollision() {
+	for _, t := range g.trunkPool {
+		if !t.Active {
+			continue
+		}
+		if t.ColidesWith(g.player) {
+			g.over = true
+		}
+	}
 }

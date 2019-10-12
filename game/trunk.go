@@ -21,8 +21,9 @@ type TrunkPool []*Trunk
 
 func NewTrunk(sh, sw int32, tex *sdl.Texture) *Trunk {
 
-	gap := sh / 10 * 4
-	w := sh / 4 / 100 * 90
+	gap := int32(float32(sh) * 0.40)
+
+	w := int32(float32(sh) * 0.2 * 1.05)
 
 	return &Trunk{
 		top:    getTopPosition(sh, gap),
@@ -66,6 +67,39 @@ func (t *Trunk) Reset(sh, sw int32) {
 	t.Active = false
 	t.left = sw
 	t.top = getTopPosition(sh, t.gap)
+}
+
+func (t *Trunk) ColidesWith(p *Player) bool {
+	for _, hb := range p.hitboxes {
+		playerTopLeft := sdl.Point{X: hb.X, Y: hb.Y}
+		playerBottomRight := sdl.Point{X: hb.X + hb.W, Y: hb.Y + hb.H}
+
+		trunkTopPartTopLeft := sdl.Point{X: t.topPart.X, Y: t.topPart.Y}
+		trunkTopPartBottomRight := sdl.Point{X: t.topPart.X + t.topPart.W, Y: t.topPart.Y + t.topPart.H}
+
+		trunkBotPartTopLeft := sdl.Point{X: t.botPart.X, Y: t.botPart.Y}
+
+		// As both trunk parts moves at the same speed and has the same left/right position
+		// we use only one of the trunk parts to make sure the player is not coliding by the sides.
+		//
+		// The condition below represents: if the player is not crossing the pipes, it is not colliding
+		if trunkTopPartTopLeft.X > playerBottomRight.X || playerTopLeft.X > trunkTopPartBottomRight.X {
+			continue
+		}
+
+		// Since the player can't move out of the screen, we just need to check if it colides
+		// from the top of the bottom part of the trunk and from the bottom of the top part of the trunk
+		// since the last verification is checking side collisions
+		//
+		// The condition bellow represents: if the player is fully inside of the gap, it not is not colliding
+		if playerTopLeft.Y > trunkTopPartBottomRight.Y && playerBottomRight.Y < trunkBotPartTopLeft.Y {
+			continue
+		}
+
+		return true
+	}
+
+	return false
 }
 
 func (tt TrunkPool) Next() (*Trunk, bool) {

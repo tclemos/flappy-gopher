@@ -34,11 +34,16 @@ func (c *Cloud) Reset(sh, sw int32) {
 	c.Active = false
 }
 
-func (c *Cloud) Update() {
+func (c *Cloud) Update(slow bool) {
 	if !c.Active {
 		return
 	}
-	c.x -= c.velocity
+
+	v := c.velocity
+	if slow {
+		v = c.velocity / 3
+	}
+	c.x -= v
 }
 
 func (c *Cloud) Draw(r *sdl.Renderer) {
