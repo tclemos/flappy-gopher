@@ -6,6 +6,7 @@ import (
 
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
+	"github.com/veandco/go-sdl2/ttf"
 )
 
 // Game represents a game
@@ -17,6 +18,7 @@ type Game struct {
 	trunkPool TrunkPool
 	cloudPool CloudPool
 	grassPool GrassPool
+	score     *Score
 	running   bool
 	over      bool
 }
@@ -31,7 +33,7 @@ func (g *Game) Init() error {
 
 	err := sdl.Init(sdl.INIT_EVERYTHING)
 	if err != nil {
-		return fmt.Errorf("Initializing SDL: %s\n", err.Error())
+		return fmt.Errorf("Initializing SDL: %s", err.Error())
 	}
 	defer sdl.Quit()
 
@@ -40,15 +42,23 @@ func (g *Game) Init() error {
 		1200, 720,
 		sdl.WINDOW_OPENGL)
 	if err != nil {
-		return fmt.Errorf("Initializing window: %s\n", err.Error())
+		return fmt.Errorf("Initializing window: %s", err.Error())
 	}
 	defer g.window.Destroy()
-	//g.window.SetFullscreen(sdl.WINDOW_FULLSCREEN_DESKTOP)
+	g.window.SetFullscreen(sdl.WINDOW_FULLSCREEN_DESKTOP)
 	g.w, g.h = g.window.GetSize()
 
 	g.renderer, err = sdl.CreateRenderer(g.window, -1, sdl.RENDERER_ACCELERATED|sdl.RENDERER_PRESENTVSYNC)
 	if err != nil {
-		return fmt.Errorf("Initializing Renderer: %s\n", err.Error())
+		return fmt.Errorf("initializing renderer: %s", err.Error())
+	}
+
+	if img.Init(img.INIT_JPG|img.INIT_PNG) == 0 {
+		return fmt.Errorf("Initializing image library")
+	}
+
+	if ttf.Init() != nil {
+		return fmt.Errorf("Initializing font library")
 	}
 
 	if err = g.restart(); err != nil {
@@ -70,6 +80,7 @@ func (g *Game) Init() error {
 		g.drawGrasses()
 		g.drawPipes()
 		g.drawPlayer()
+		g.drawScore()
 		g.checkCollision()
 
 		g.renderer.Present()
@@ -79,14 +90,14 @@ func (g *Game) Init() error {
 }
 
 func (g *Game) createPlayer() error {
-	image, _ := img.Load("../../game/sprites/player.png")
+	image, _ := img.Load("./game/sprites/player.png")
 	texture, _ := g.renderer.CreateTextureFromSurface(image)
 	g.player = NewPlayer(g.w, g.h, texture)
 	return nil
 }
 
 func (g *Game) createPipes() error {
-	image, _ := img.Load("../../game/sprites/trunk.png")
+	image, _ := img.Load("./game/sprites/trunk.png")
 	texture, _ := g.renderer.CreateTextureFromSurface(image)
 
 	g.trunkPool = TrunkPool{}
@@ -98,7 +109,7 @@ func (g *Game) createPipes() error {
 }
 
 func (g *Game) createClouds() error {
-	image, _ := img.Load("../../game/sprites/cloud.png")
+	image, _ := img.Load("./game/sprites/cloud.png")
 	tx, _ := g.renderer.CreateTextureFromSurface(image)
 
 	g.cloudPool = CloudPool{}
@@ -110,13 +121,22 @@ func (g *Game) createClouds() error {
 }
 
 func (g *Game) createGrasses() error {
-	image, _ := img.Load("../../game/sprites/grass.png")
+	image, _ := img.Load("./game/sprites/grass.png")
 	tx, _ := g.renderer.CreateTextureFromSurface(image)
 
 	g.grassPool = GrassPool{}
 	for x := 0; x < 16; x++ {
 		g.grassPool = append(g.grassPool, NewGrass(g.h, g.w, tx))
 	}
+
+	return nil
+}
+
+func (g *Game) createScore() error {
+	font, _ := ttf.OpenFont("./game/fonts/TurretRoad/TurretRoad-ExtraBold.ttf", 50)
+	color := sdl.Color{R: 235, G: 213, B: 52, A: 255}
+
+	g.score = NewScore(font, color)
 
 	return nil
 }
@@ -225,6 +245,14 @@ func (g *Game) drawPlayer() {
 	g.player.Draw(g.renderer)
 }
 
+func (g *Game) drawScore() {
+	t, found := g.trunkPool.NextToPlayer(g.player)
+	if !g.over && found {
+		g.score.Update(g.player, t)
+	}
+	g.score.Draw(g.renderer)
+}
+
 func (g *Game) restart() error {
 	if err := g.createPlayer(); err != nil {
 		return err
@@ -239,6 +267,10 @@ func (g *Game) restart() error {
 	}
 
 	if err := g.createGrasses(); err != nil {
+		return err
+	}
+
+	if err := g.createScore(); err != nil {
 		return err
 	}
 

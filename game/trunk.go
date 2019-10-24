@@ -15,6 +15,7 @@ type Trunk struct {
 	tex       *sdl.Texture
 
 	Active bool
+	Scored bool
 }
 
 type TrunkPool []*Trunk
@@ -26,12 +27,14 @@ func NewTrunk(sh, sw int32, tex *sdl.Texture) *Trunk {
 	w := int32(float32(sh) * 0.2 * 1.05)
 
 	return &Trunk{
-		top:    getTopPosition(sh, gap),
-		left:   sw,
+		top:  getTopPosition(sh, gap),
+		left: sw,
+		w:    w,
+		gap:  gap,
+		tex:  tex,
+
 		Active: false,
-		w:      w,
-		gap:    gap,
-		tex:    tex,
+		Scored: false,
 	}
 }
 
@@ -54,9 +57,10 @@ func (t *Trunk) Draw(r *sdl.Renderer) {
 	if !t.Active {
 		return
 	}
+
 	src := &sdl.Rect{0, 0, 1048, 1920}
-	r.Copy(t.tex, src, &t.botPart)
 	r.Copy(t.tex, src, &t.topPart)
+	r.Copy(t.tex, src, &t.botPart)
 }
 
 func (t *Trunk) OffScreen() bool {
@@ -65,6 +69,8 @@ func (t *Trunk) OffScreen() bool {
 
 func (t *Trunk) Reset(sh, sw int32) {
 	t.Active = false
+	t.Scored = false
+
 	t.left = sw
 	t.top = getTopPosition(sh, t.gap)
 }
@@ -110,4 +116,20 @@ func (tt TrunkPool) Next() (*Trunk, bool) {
 	}
 
 	return nil, false
+}
+
+func (tt TrunkPool) NextToPlayer(p *Player) (*Trunk, bool) {
+	var r *Trunk
+
+	for _, t := range tt {
+		if !t.Active {
+			continue
+		}
+
+		if r == nil || (r.topPart.X > t.topPart.X && (t.topPart.X+t.topPart.W) < p.X) {
+			r = t
+		}
+	}
+
+	return r, r != nil
 }

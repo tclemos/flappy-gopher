@@ -76,16 +76,14 @@ func (p *Player) Update(sw, sh int32) {
 	p.hitboxes = []*sdl.Rect{
 		hb1, hb2,
 	}
-
-	//fmt.Println(p.hitbox)
 }
 
 func (p *Player) Draw(r *sdl.Renderer) {
 	src := sdl.Rect{X: 0, Y: 0, W: 647, H: 572}
 	dst := sdl.Rect{X: p.X, Y: p.Y, W: p.W, H: p.H}
 	r.Copy(p.tex, &src, &dst)
-	r.SetDrawColor(255, 0, 0, 255)
-	r.FillRect(p.hitboxes[0])
-	r.SetDrawColor(0, 255, 0, 255)
-	r.FillRect(p.hitboxes[1])
+	// r.SetDrawColor(255, 0, 0, 255)
+	// r.FillRect(p.hitboxes[0])
+	// r.SetDrawColor(0, 255, 0, 255)
+	// r.FillRect(p.hitboxes[1])
 }

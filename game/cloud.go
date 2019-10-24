@@ -10,7 +10,7 @@ import (
 type Cloud struct {
 	x, y, w, h int32
 	velocity   int32
-	texture    *sdl.Texture
+	tex        *sdl.Texture
 	Active     bool
 }
 
@@ -18,7 +18,7 @@ type CloudPool []*Cloud
 
 func NewCloud(sh, sw int32, t *sdl.Texture) *Cloud {
 	c := &Cloud{
-		texture: t,
+		tex: t,
 	}
 	c.Reset(sh, sw)
 	return c
@@ -53,7 +53,7 @@ func (c *Cloud) Draw(r *sdl.Renderer) {
 	src := &sdl.Rect{0, 0, 557, 277}
 	dst := &sdl.Rect{X: c.x, Y: c.y, W: c.w, H: c.h}
 	r.SetDrawColor(255, 255, 255, 255)
-	r.Copy(c.texture, src, dst)
+	r.Copy(c.tex, src, dst)
 }
 
 func (c *Cloud) OffScreen() bool {

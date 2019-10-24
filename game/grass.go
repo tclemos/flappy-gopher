@@ -9,7 +9,7 @@ import (
 
 type Grass struct {
 	x, y, w, h int32
-	texture    *sdl.Texture
+	tex        *sdl.Texture
 	Active     bool
 }
 
@@ -17,7 +17,7 @@ type GrassPool []*Grass
 
 func NewGrass(sh, sw int32, t *sdl.Texture) *Grass {
 	g := &Grass{
-		texture: t,
+		tex: t,
 	}
 	g.Reset(sh, sw)
 	return g
@@ -46,7 +46,7 @@ func (g *Grass) Draw(r *sdl.Renderer) {
 	src := &sdl.Rect{0, 0, 500, 495}
 	dst := &sdl.Rect{X: g.x, Y: g.y, W: g.w, H: g.h}
 	r.SetDrawColor(255, 255, 255, 255)
-	r.Copy(g.texture, src, dst)
+	r.Copy(g.tex, src, dst)
 }
 
 func (g *Grass) OffScreen() bool {
