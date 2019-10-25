@@ -1,5 +1,7 @@
 # flappy-gopher
 
+[![Build Status](https://img.shields.io/travis/tclemos/flappy-gopher/master.svg?style=flat-square)](https://travis-ci.org/tclemos/flappy-gopher)
+
 A game made using Go that mimics the flappy-bird game with Gopher style
 
 ## Dependencies

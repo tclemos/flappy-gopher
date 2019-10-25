@@ -1,0 +1,34 @@
+language: go
+
+go:
+  # - "1.12.x"
+  # - "1.13.x"
+  - master
+
+env:
+  - GO111MODULE=on
+
+script:
+  - make build-windows
+  # - make build-osx
+
+before_install:
+  - sudo apt-get -y install libsdl2{,-image,-ttf}-dev
+  - sudo apt-get -y install mingw-w64
+  - sudo apt-get -y install zip
+
+after_success:
+  - mkdir dist
+  - zip -r ./dist/osx.zip ./builds/osx
+  - zip -r ./dist/windows.zip ./builds/windows
+
+deploy:
+  provider: releases
+  api_key:
+    secure: nqQ/OgXa7ppSkXezjPOkseesf9XnLmfnC368W6oJeDrdL/1B3pxsNe1YyingOWq7VBtzLixdK43J4664n7KfasVjwC70R8wig0ucFSbqXtozLblMP8Zz+V1/QnTLutIW75kEiJVpkDbeNYC0vv4AuBNmGr2XZkR0gerIT6YL9Jjl9Z/sUjqSvwcVyj4mVNo/s4Su40kP2VWQ+jRd1iNWIa7GS4Ixo7Bc9VDFZFxo8SC26J7z9TTRfM+CnCvBQYUpoDahr8uIi9rp3oyXPloHYeO0eEjGZ4Kb27Mb6OZk1w3GZICax4zUqcWW/MdpImJR7QN7aXfNRuAHWMXj9qJCytN2z7IMP2Xv/c+jLjQxw/wQ30J7Vw+lIO2THzRhHsl4KBfy1UkEPZb6InpB7f8F736slMkETi+M75gK8SkjAv0ZrhL8CMpWmV9AIUxNFQSNqtTS17+SYDExKIbphF0acw1apZh2SjXB9Jca8ejwHDKxPG7Pr28Mvd+/3TOA6TGCxSIdvEn2yTMIpfMZ7sWh3NYljnGTJh708T17m5fqm9F1oRqcvptd/GwIvCPtZWnRiIKhAh9j2/5COJc89mp7O4ZUndsLws54Wj/zqrMSGnsUSKPBzah6/5aw7AcvdppV1wT9446Dx+JWfdizYGKQP2mpbzm7F+lQAK+dLVfHiaU=
+  file:
+    - "./dist/osx.zip"
+    - "./dist/windows.zip"
+  skip_cleanup: true
+  on:
+    repo: tclemos/flappy-gopher
