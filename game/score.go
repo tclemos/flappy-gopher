@@ -34,7 +34,7 @@ func (s *Score) Update(p *Player, t *Trunk) {
 func (s *Score) Draw(r *sdl.Renderer) {
 	t := fmt.Sprintf("SCORE: %d", s.Value)
 
-	sur, _ := s.font.RenderUTF8Solid(t, s.color)
+	sur, _ := s.font.RenderUTF8Blended(t, s.color)
 	defer sur.Free()
 
 	tx, _ := r.CreateTextureFromSurface(sur)
@@ -42,7 +42,8 @@ func (s *Score) Draw(r *sdl.Renderer) {
 
 	w, h, _ := s.font.SizeUTF8(t)
 
-	rect := &sdl.Rect{X: 0, Y: 0, W: int32(w), H: int32(h)}
+	src := &sdl.Rect{X: 0, Y: 0, W: int32(w), H: int32(h)}
+	dst := &sdl.Rect{X: 40, Y: 0, W: int32(w), H: int32(h)}
 
-	r.Copy(tx, rect, rect)
+	r.Copy(tx, src, dst)
 }

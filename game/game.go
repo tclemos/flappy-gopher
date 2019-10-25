@@ -133,7 +133,7 @@ func (g *Game) createGrasses() error {
 }
 
 func (g *Game) createScore() error {
-	font, _ := ttf.OpenFont("./game/fonts/TurretRoad/TurretRoad-ExtraBold.ttf", 50)
+	font, _ := ttf.OpenFont("./game/fonts/Corben/Corben-Bold.ttf", 60)
 	color := sdl.Color{R: 235, G: 213, B: 52, A: 255}
 
 	g.score = NewScore(font, color)
