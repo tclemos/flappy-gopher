@@ -1,8 +1,8 @@
 language: go
 
 go:
-  - "1.12.x"
-  - "1.13.x"
+  # - "1.12.x"
+  # - "1.13.x"
   - master
 
 env:
@@ -10,7 +10,7 @@ env:
 
 script:
   - make build-windows
-  - make build-osx
+  # - make build-osx
 
 before_install:
   - sudo apt-get -y install libsdl2{,-image,-ttf}-dev
