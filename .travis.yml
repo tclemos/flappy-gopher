@@ -1,0 +1,12 @@
+language: go
+
+go:
+  - "1.12.x"
+  - "1.13.x"
+  - master
+env:
+  - GO111MODULE=on
+
+script:
+  - make build-windows
+  - make build-osx
