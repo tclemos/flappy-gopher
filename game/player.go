@@ -89,6 +89,5 @@ func (p *Player) Draw(r *sdl.Renderer) {
 }
 
 func (p *Player) Destroy() error {
-	err := p.tex.Destroy()
-	return err
+	return p.tex.Destroy()
 }

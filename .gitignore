@@ -10,3 +10,9 @@
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+
+# Remove builds
+/builds
+
+# Include sdl2 windows dependencies
+!/win-sdl2/**.*
