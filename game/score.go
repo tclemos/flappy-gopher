@@ -47,3 +47,8 @@ func (s *Score) Draw(r *sdl.Renderer) {
 
 	r.Copy(tx, src, dst)
 }
+
+func (s *Score) Destroy() error {
+	s.font.Close()
+	return nil
+}

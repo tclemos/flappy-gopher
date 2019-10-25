@@ -87,3 +87,8 @@ func (p *Player) Draw(r *sdl.Renderer) {
 	// r.SetDrawColor(0, 255, 0, 255)
 	// r.FillRect(p.hitboxes[1])
 }
+
+func (p *Player) Destroy() error {
+	err := p.tex.Destroy()
+	return err
+}

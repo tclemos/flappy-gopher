@@ -60,6 +60,10 @@ func (c *Cloud) OffScreen() bool {
 	return c.x+c.w < 0
 }
 
+func (c *Cloud) Destroy() error {
+	return c.tex.Destroy()
+}
+
 func (cp CloudPool) Next() (*Cloud, bool) {
 	for _, c := range cp {
 		if !c.Active {
@@ -68,4 +72,13 @@ func (cp CloudPool) Next() (*Cloud, bool) {
 	}
 
 	return nil, false
+}
+
+func (cc CloudPool) Destroy() error {
+	for _, c := range cc {
+		if err := c.Destroy(); err != nil {
+			return err
+		}
+	}
+	return nil
 }

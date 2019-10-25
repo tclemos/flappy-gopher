@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"runtime"
 	"time"
 
 	"github.com/veandco/go-sdl2/img"
@@ -45,7 +46,7 @@ func (g *Game) Init() error {
 		return fmt.Errorf("Initializing window: %s", err.Error())
 	}
 	defer g.window.Destroy()
-	g.window.SetFullscreen(sdl.WINDOW_FULLSCREEN_DESKTOP)
+	// g.window.SetFullscreen(sdl.WINDOW_FULLSCREEN_DESKTOP)
 	g.w, g.h = g.window.GetSize()
 
 	g.renderer, err = sdl.CreateRenderer(g.window, -1, sdl.RENDERER_ACCELERATED|sdl.RENDERER_PRESENTVSYNC)
@@ -90,14 +91,24 @@ func (g *Game) Init() error {
 }
 
 func (g *Game) createPlayer() error {
+	if g.player != nil {
+		g.player.Destroy()
+	}
+
 	image, _ := img.Load("./game/sprites/player.png")
+	defer image.Free()
 	texture, _ := g.renderer.CreateTextureFromSurface(image)
 	g.player = NewPlayer(g.w, g.h, texture)
 	return nil
 }
 
 func (g *Game) createPipes() error {
+	if g.trunkPool != nil {
+		g.trunkPool.Destroy()
+	}
+
 	image, _ := img.Load("./game/sprites/trunk.png")
+	defer image.Free()
 	texture, _ := g.renderer.CreateTextureFromSurface(image)
 
 	g.trunkPool = TrunkPool{}
@@ -109,7 +120,12 @@ func (g *Game) createPipes() error {
 }
 
 func (g *Game) createClouds() error {
+	if g.cloudPool != nil {
+		g.cloudPool.Destroy()
+	}
+
 	image, _ := img.Load("./game/sprites/cloud.png")
+	defer image.Free()
 	tx, _ := g.renderer.CreateTextureFromSurface(image)
 
 	g.cloudPool = CloudPool{}
@@ -121,7 +137,12 @@ func (g *Game) createClouds() error {
 }
 
 func (g *Game) createGrasses() error {
+	if g.grassPool != nil {
+		g.grassPool.Destroy()
+	}
+
 	image, _ := img.Load("./game/sprites/grass.png")
+	defer image.Free()
 	tx, _ := g.renderer.CreateTextureFromSurface(image)
 
 	g.grassPool = GrassPool{}
@@ -133,6 +154,10 @@ func (g *Game) createGrasses() error {
 }
 
 func (g *Game) createScore() error {
+	if g.score != nil {
+		g.score.Destroy()
+	}
+
 	font, _ := ttf.OpenFont("./game/fonts/Corben/Corben-Bold.ttf", 60)
 	color := sdl.Color{R: 235, G: 213, B: 52, A: 255}
 
@@ -276,6 +301,9 @@ func (g *Game) restart() error {
 
 	g.v = int32(5)
 	g.over = false
+
+	runtime.GC()
+
 	return nil
 }
 

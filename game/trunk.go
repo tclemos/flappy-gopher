@@ -108,6 +108,10 @@ func (t *Trunk) ColidesWith(p *Player) bool {
 	return false
 }
 
+func (t *Trunk) Destroy() error {
+	return t.tex.Destroy()
+}
+
 func (tt TrunkPool) Next() (*Trunk, bool) {
 	for _, t := range tt {
 		if !t.Active {
@@ -132,4 +136,13 @@ func (tt TrunkPool) NextToPlayer(p *Player) (*Trunk, bool) {
 	}
 
 	return r, r != nil
+}
+
+func (tt TrunkPool) Destroy() error {
+	for _, t := range tt {
+		if err := t.Destroy(); err != nil {
+			return err
+		}
+	}
+	return nil
 }

@@ -49,6 +49,10 @@ func (g *Grass) Draw(r *sdl.Renderer) {
 	r.Copy(g.tex, src, dst)
 }
 
+func (g *Grass) Destroy() error {
+	return g.tex.Destroy()
+}
+
 func (g *Grass) OffScreen() bool {
 	return g.x+g.w < 0
 }
@@ -61,4 +65,13 @@ func (gp GrassPool) Next() (*Grass, bool) {
 	}
 
 	return nil, false
+}
+
+func (gg GrassPool) Destroy() error {
+	for _, g := range gg {
+		if err := g.Destroy(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
