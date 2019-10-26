@@ -12,12 +12,22 @@ A game made using Go that mimics the flappy-bird game with Gopher style
   - SDL2_ttf
 - MinGW
 
+### OS X
 ``` bash
 brew install go
 brew install sdl2
 brew install sdl2_img
 brew install sdl2_ttf
 brew install mingw-w64
+```
+
+### Ubuntu/Debian
+``` bash
+sudo apt-get install -y golang
+sudo apt-get install -y libsdl2-dev
+sudo apt-get install -y libsdl2-image-dev
+sudo apt-get install -y libsdl2-ttf-dev
+sudo apt-get install -y mingw-w64
 ```
 
 ## Compiling

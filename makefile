@@ -24,6 +24,18 @@ run-o:
 
 run-osx: build-osx run-o
 
+run-l: 
+	(cd $(LINUX_BUILD_PATH) && ./flappy-gopher)
+
+run-linux: build-linux run-l
+
+build-linux:
+	rm -Rf ${LINUX_BUILD_PATH}
+	CGO_ENABLED=1 CC="gcc" GOOS=linux GOARCH=amd64 go build -o ${LINUX_BUILD_PATH}/${EXECUTABLE_NAME} -tags static -ldflags "-s -w" ${CMD_PATH}
+	mkdir ${LINUX_BUILD_PATH}/game
+	cp -R ${FONTS_PATH} ${LINUX_BUILD_PATH}/game
+	cp -R ${SPRITES_PATH} ${LINUX_BUILD_PATH}/game
+
 build-osx:
 	rm -Rf ${OSX_BUILD_PATH}
 	CGO_ENABLED=1 CC="gcc" GOOS="darwin" GOARCH="amd64" go build -o ${OSX_BUILD_PATH}/${EXECUTABLE_NAME} -tags static -ldflags "-s -w" ${CMD_PATH}
