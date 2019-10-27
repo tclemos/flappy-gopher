@@ -9,7 +9,7 @@ env:
   - GO111MODULE=on
 
 script:
-  - make build-linux
+  # - make build-linux
   # - make build-osx
   - make build-windows
 
