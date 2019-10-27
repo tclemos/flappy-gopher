@@ -79,7 +79,7 @@ func (g *Game) Init() error {
 		g.drawBackGround()
 		g.drawClouds()
 		g.drawGrasses()
-		g.drawPipes()
+		g.drawTrunks()
 		g.drawPlayer()
 		g.drawScore()
 		g.checkCollision()
@@ -251,7 +251,7 @@ func (g *Game) drawGrasses() {
 	}
 }
 
-func (g *Game) drawPipes() {
+func (g *Game) drawTrunks() {
 	for _, p := range g.trunkPool {
 		if !g.over {
 			p.Update(g.w, g.h, g.v)

@@ -9,9 +9,9 @@ env:
   - GO111MODULE=on
 
 script:
-  # - make build-linux
-  # - make build-osx
-  - make build-windows
+  - make build-lin-to-lin
+  - make build-lin-to-osx
+  - make build-lin-to-win
 
 before_install:
   - sudo apt-get -y install libsdl2{,-image,-ttf}-dev

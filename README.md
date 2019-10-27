@@ -2,62 +2,68 @@
 
 [![Build Status](https://img.shields.io/travis/tclemos/flappy-gopher/master.svg?style=flat-square)](https://travis-ci.org/tclemos/flappy-gopher)
 
-A game made using Go that mimics the flappy-bird game with Gopher style
+A game that mimics the flappy-bird game with Gopher style.
 
-## Dependencies
+This game uses [go-sdl2](https://github.com/veandco/go-sdl2), that is a wrapper for the SDL2. 
 
-- Go
-- SDL2
-  - SDL2_img
-  - SDL2_ttf
-- MinGW
+> **_If you want to help with the development or run it locally from the code, the original SDL2 installation is required._**
 
-### OS X
-``` bash
-brew install go
-brew install sdl2
-brew install sdl2_img
-brew install sdl2_ttf
-brew install mingw-w64
-```
+> _If you just want to play the game, there is no need to install SDL2, just download the zip files provided by the releases, extract it and run the executable._
 
-### Ubuntu/Debian
-``` bash
-sudo apt-get install -y golang
-sudo apt-get install -y libsdl2-dev
-sudo apt-get install -y libsdl2-image-dev
-sudo apt-get install -y libsdl2-ttf-dev
-sudo apt-get install -y mingw-w64
-```
+## Development dependencies
 
-## Compiling
-
-``` bash
-make build-osx
-make build-windows
-```
+- [Go](https://golang.org/dl/) >= **1.12**
+- [SDL2](https://www.libsdl.org/download-2.0.php)  **v2.0.10**
+  - [SDL2_img](http://www.libsdl.org/projects/SDL_image/) >= **v2.0.5**
+  - [SDL2_ttf](http://www.libsdl.org/projects/SDL_ttf/) >= **v2.0.15**
 
 ## Running
-
-### From Code
 
 ``` bash
 make run
 ```
-This command runs `go run` to execute the `./cmd/flappy-gopher/main.go`.
+This command runs the game based on the local code, useful during the development phase.
 
-### OS X
+Make sure to know it will focus the execution using your current OS as the target version, since it uses `go run` to execute the game.
 
-``` bash
-make run-osx
+If you want to run a compiled version, run one of the compile commands and then check the `./builds` directory.
+
+## Deployment dependencies
+
+If you are using `Linux` or `OS X` and want to compile a `Windows` version, you must install the `mingw-64` to be able to compile it.
+
+Linux(Ubuntu/Debian)
+```
+sudo apt install -y mingw-w64
 ```
 
-This command compiles the OS X version and runs this compiled version
-
-### Windows
-
-``` bash
-make run-windows
+OS X
+```
+brew install mingw-w64
 ```
 
-This command compiles the Windows version and runs this compiled version
+## Compiling
+Make sure to use the correct command accordingly to your `development OS` and the `target OS`, otherwise it will not work properly.
+
+### From Linux
+``` bash
+make build-lin-to-lin
+make build-lin-to-osx
+make build-lin-to-win
+```
+
+### From Windows
+``` bash
+make build-win-to-lin
+make build-win-to-osx
+make build-win-to-win
+```
+
+### From OS X
+``` bash
+make build-osx-to-lin
+make build-osx-to-osx
+make build-osx-to-win
+```
+
+
