@@ -18,7 +18,10 @@ addons:
     update: true
     packages:
     - libsdl2-dev
+    - zlib1g
+    - libpng16-16
     - libsdl2-image-dev
+    - libfreetype6
     - libsdl2-ttf-dev
     - mingw-w64
     - zip
