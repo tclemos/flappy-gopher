@@ -14,6 +14,10 @@ EXECUTABLE_NAME=flappy-gopher
 run: 
 	go run ${CMD_PATH}
 
+build:
+	sudo docker build . -t flappy-gopher-builder:latest
+	sudo docker run --rm --name=flappy-gopher-build -it flappy-gopher-builder bash
+
 # BEGIN LINUX BUILD
 build-lin-to-lin:
 	rm -Rf ${LINUX_BUILD_PATH}
