@@ -2,7 +2,6 @@ package game
 
 import (
 	"math/rand"
-	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -39,7 +38,6 @@ func NewTrunk(sh, sw int32, tex *sdl.Texture) *Trunk {
 }
 
 func getTopPosition(sh, gap int32) int32 {
-	rand.Seed(time.Now().UnixNano())
 	return rand.Int31n(sh-gap-60) + 30
 }
 

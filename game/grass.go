@@ -2,7 +2,6 @@ package game
 
 import (
 	"math/rand"
-	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -24,7 +23,6 @@ func NewGrass(sh, sw int32, t *sdl.Texture) *Grass {
 }
 
 func (g *Grass) Reset(sh, sw int32) {
-	rand.Seed(time.Now().UnixNano())
 	g.x = sw
 	g.w = sw * 1000 / 100 * (rand.Int31n(5) + 2) / 1000
 	g.h = g.w
