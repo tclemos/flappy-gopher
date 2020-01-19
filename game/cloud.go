@@ -2,7 +2,6 @@ package game
 
 import (
 	"math/rand"
-	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -25,7 +24,6 @@ func NewCloud(sh, sw int32, t *sdl.Texture) *Cloud {
 }
 
 func (c *Cloud) Reset(sh, sw int32) {
-	rand.Seed(time.Now().UnixNano())
 	c.y = rand.Int31n(sh/3*2 - 100)
 	c.x = sw
 	c.velocity = rand.Int31n(10) + 1

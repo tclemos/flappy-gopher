@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"math/rand"
 	"runtime"
 	"time"
 
@@ -61,6 +62,9 @@ func (g *Game) Init() error {
 	if ttf.Init() != nil {
 		return fmt.Errorf("Initializing font library")
 	}
+
+	// initialize random number generator
+	rand.Seed(time.Now().UnixNano())
 
 	if err = g.restart(); err != nil {
 		return err
